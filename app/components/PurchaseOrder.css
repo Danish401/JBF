@@ -1,0 +1,688 @@
+/* Purchase Order document — scoped under .purchase-order */
+
+.purchase-order {
+  --po-border: #000;
+  --po-header-bg: #808080;
+  --po-header-text: #fff;
+  --po-watermark: rgba(190, 190, 190, 0.42);
+  /* Match A4 landscape sheet width (29.7 cm) — same proportions as PDF template */
+  --po-sheet-max: 29.7cm;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #000;
+  max-width: min(100%, var(--po-sheet-max));
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.purchase-order *,
+.purchase-order *::before,
+.purchase-order *::after {
+  box-sizing: border-box;
+}
+
+/* Single-column wrapper so document <thead> repeats on every printed page (browser print/PDF) */
+.purchase-order__doc-print-wrap {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: none;
+  margin: 0;
+}
+
+.purchase-order__doc-print-thead-cell,
+.purchase-order__doc-print-tbody-cell {
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+  border: none;
+  width: 100%;
+}
+
+/* ----- Top header: landscape layout (logo | title & company | PO) — PDF template style ----- */
+.purchase-order__header {
+  display: grid;
+  grid-template-columns: minmax(88px, 13%) minmax(0, 1fr) minmax(148px, 17%);
+  border: 1px solid var(--po-border);
+  align-items: stretch;
+}
+
+.purchase-order__header-logo-cell {
+  border-right: 1px solid var(--po-border);
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.purchase-order__header-center-cell {
+  border-right: 1px solid var(--po-border);
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  min-width: 0;
+}
+
+.purchase-order__header-company-block {
+  width: 100%;
+  text-align: left;
+}
+
+.purchase-order__header-po-cell {
+  padding: 10px 12px 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: #fff;
+}
+
+.purchase-order__logo {
+  position: relative;
+  width: 100%;
+  min-height: 78px;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+.purchase-order__logo-img {
+  object-fit: contain;
+  object-position: center;
+}
+
+.purchase-order__doc-title {
+  align-self: center;
+  width: 100%;
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.purchase-order__company-name {
+  margin: 0 0 5px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.purchase-order__company-address {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+  max-width: 100%;
+  text-transform: none;
+}
+
+.purchase-order__po-rows {
+  width: 100%;
+  text-align: left;
+}
+
+.purchase-order__po-line {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.purchase-order__po-line:last-child {
+  margin-bottom: 0;
+}
+
+.purchase-order__po-label {
+  font-weight: 700;
+}
+
+.purchase-order__po-sep {
+  font-weight: 400;
+}
+
+.purchase-order__po-val {
+  font-weight: 400;
+}
+
+/* ----- Supplier / Bill / Ship (synchronized table rows) ----- */
+.purchase-order__parties {
+  margin-top: 0;
+  border: 1px solid var(--po-border);
+  border-top: none;
+  /* Left edge drawn on first table column — avoids missing line when inner table paints flush */
+  border-left: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.purchase-order__parties-table {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: none;
+  background: #fff;
+}
+
+.purchase-order__parties-th {
+  background: var(--po-header-bg);
+  color: var(--po-header-text);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: none;
+  padding: 4px 8px 5px;
+  text-align: left;
+  border-bottom: none;
+  border-left: 1px solid var(--po-border);
+  border-right: 1px solid var(--po-border);
+  vertical-align: middle;
+  width: 33.33%;
+  line-height: 1.2;
+}
+
+.purchase-order__parties-th:last-child {
+  border-right: none;
+}
+
+.purchase-order__parties-th:not(:first-child) {
+  border-left: none;
+}
+
+.purchase-order__parties-td {
+  border-left: 1px solid var(--po-border);
+  border-right: 1px solid var(--po-border);
+  border-bottom: none;
+  vertical-align: top;
+  padding: 3px 8px 3px;
+  background: #fff;
+  text-align: left;
+}
+
+.purchase-order__parties-td:not(:first-child) {
+  border-left: none;
+}
+
+.purchase-order__parties-td:last-child {
+  border-right: none;
+}
+
+.purchase-order__parties-tr--bottom .purchase-order__parties-td {
+  padding-top: 5px;
+}
+
+.purchase-order__parties-td--spacer {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.purchase-order__parties-cell-spacer {
+  display: block;
+  min-height: calc(1.2em + 2px);
+}
+
+.purchase-order__watermark {
+  pointer-events: none;
+  position: absolute;
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--po-watermark);
+  letter-spacing: 0.18em;
+  z-index: 0;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.purchase-order__watermark--parties {
+  left: 58%;
+  top: 52%;
+  transform: translate(-50%, -50%) rotate(-32deg);
+}
+
+/* Label / colon / value — same grid in every party cell */
+.purchase-order__supplier-kv {
+  display: grid;
+  grid-template-columns: 7.5rem 0.45rem minmax(0, 1fr);
+  column-gap: 2px;
+  font-size: 10.5px;
+  line-height: 1.2;
+  align-items: start;
+  margin-bottom: 0;
+  min-height: calc(1.2em + 1px);
+}
+
+.purchase-order__supplier-kv--multiline {
+  min-height: 0;
+}
+
+/* Bill / Ship: values flush left in the cell (no reserved label column) */
+.purchase-order__supplier-kv--hide-label {
+  display: block;
+}
+
+.purchase-order__supplier-kv--hide-label .purchase-order__sk-label,
+.purchase-order__supplier-kv--hide-label .purchase-order__sk-colon {
+  display: none;
+}
+
+.purchase-order__supplier-kv--hide-label .purchase-order__sk-value {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.purchase-order__supplier-kv--bold .purchase-order__sk-label,
+.purchase-order__supplier-kv--bold .purchase-order__sk-value {
+  font-weight: 700;
+}
+
+.purchase-order__sk-label {
+  text-align: left;
+  font-weight: 400;
+}
+
+.purchase-order__sk-colon {
+  text-align: center;
+  font-weight: 400;
+}
+
+.purchase-order__sk-value {
+  font-weight: 400;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.purchase-order__sk-value--party-strong {
+  font-weight: 700;
+}
+
+.purchase-order__sk-placeholder {
+  display: inline-block;
+  min-height: 1.2em;
+  min-width: 0.35em;
+  vertical-align: top;
+}
+
+.purchase-order__sk-address-line {
+  display: block;
+}
+
+.purchase-order__sk-address-line + .purchase-order__sk-address-line {
+  margin-top: 1px;
+}
+
+/* ----- Items table ----- */
+.purchase-order__items-wrap {
+  margin-top: 0;
+  border: 1px solid var(--po-border);
+  border-top: none;
+}
+
+.purchase-order__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 10.5px;
+}
+
+/* table-row-group: header prints once; table-header-group repeats on every printed page */
+.purchase-order__table thead {
+  display: table-row-group;
+}
+
+.purchase-order__table tbody {
+  display: table-row-group;
+}
+
+.purchase-order__table th,
+.purchase-order__table td {
+  border: 1px solid var(--po-border);
+  padding: 6px 7px;
+  vertical-align: middle;
+}
+
+.purchase-order__table thead th {
+  background: var(--po-header-bg);
+  color: var(--po-header-text);
+  font-weight: 700;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.purchase-order__col-sr {
+  width: 5%;
+  text-align: center;
+}
+
+.purchase-order__col-code {
+  width: 11%;
+}
+
+.purchase-order__col-desc {
+  width: 38%;
+}
+
+.purchase-order__col-uom {
+  width: 6%;
+  text-align: center;
+}
+
+.purchase-order__col-qty,
+.purchase-order__col-price,
+.purchase-order__col-gross,
+.purchase-order__col-net {
+  width: 10%;
+  text-align: right;
+}
+
+.purchase-order__table tbody td.purchase-order__col-sr {
+  text-align: center;
+}
+
+.purchase-order__table tbody td.purchase-order__col-uom {
+  text-align: center;
+}
+
+.purchase-order__table tbody td.purchase-order__text-left {
+  text-align: left;
+}
+
+.purchase-order__table tbody td.purchase-order__text-right {
+  text-align: right;
+}
+
+.purchase-order__summary-label {
+  font-weight: 700;
+  text-align: right;
+}
+
+.purchase-order__summary-value {
+  text-align: right;
+}
+
+.purchase-order__summary-row--total .purchase-order__summary-label,
+.purchase-order__summary-row--total .purchase-order__summary-value {
+  font-weight: 700;
+}
+
+.purchase-order__amount-words td {
+  text-align: left;
+  font-size: 10.5px;
+  padding: 8px 10px;
+}
+
+.purchase-order__tbody-after-items tr:first-child td {
+  break-before: avoid;
+  page-break-before: avoid;
+}
+
+/* ----- Remarks (inside line-items table; matches PDF flow) ----- */
+.purchase-order__remarks-cell {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 12px 12px;
+  vertical-align: top;
+  min-height: 180px;
+}
+
+.purchase-order__remarks-print-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.purchase-order__remarks-print-spacer {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.purchase-order__remarks-cell .purchase-order__watermark:not(.purchase-order__watermark--parties) {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-35deg);
+  z-index: 0;
+}
+
+.purchase-order__remarks-inner {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+
+.purchase-order__remarks-title {
+  margin: 0 0 10px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.purchase-order__remarks-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.purchase-order__remarks-list li {
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+/* Footer inside remarks cell: one bordered block with the table grid (print-friendly page breaks) */
+.purchase-order__footer-in-remarks {
+  flex: 0 0 auto;
+  margin-top: auto;
+  border-top: 2px solid var(--po-border);
+  background: #fff;
+}
+
+.purchase-order__footer {
+  margin: 0;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 14px;
+  gap: 16px;
+}
+
+.purchase-order__footer-left {
+  text-align: left;
+}
+
+.purchase-order__footer-right {
+  text-align: right;
+}
+
+.purchase-order__footer-label {
+  font-weight: 700;
+  font-size: 11px;
+  margin: 0 0 6px;
+}
+
+.purchase-order__footer-value {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.purchase-order__footer-closing {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.purchase-order__footer-company {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ----- Print / PDF: landscape; doc header via outer table <thead> (repeats per page) ----- */
+
+@page {
+  /* Explicit landscape: width × height (mm) */
+  size: 297mm 210mm;
+  margin: 11mm 12mm;
+}
+
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .purchase-order {
+    /*
+     * Match @page size: 297mm × 210mm, margin 11mm top/bottom → 188mm tall content box.
+     * Tune --po-print-doc-header-mm if the repeated header prints taller/shorter than this.
+     * --po-print-remarks-top-slice-mm: extra rows (e.g. amount line) left above remarks on a continuation page.
+     */
+    --po-print-doc-header-mm: 38mm;
+    --po-print-remarks-top-slice-mm: 0mm;
+    max-width: none;
+    width: 100%;
+    font-size: 10pt;
+    color: #000;
+    background: #fff;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .purchase-order__watermark {
+    display: none !important;
+  }
+
+  .purchase-order__doc-print-wrap thead,
+  .purchase-order__doc-print-thead {
+    display: table-header-group;
+  }
+
+  .purchase-order__doc-print-wrap tbody,
+  .purchase-order__doc-print-tbody {
+    display: table-row-group;
+  }
+
+  .purchase-order__header {
+    width: 100% !important;
+    margin: 0;
+    background: #fff;
+    border: 1px solid var(--po-border);
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .purchase-order__header-logo-cell,
+  .purchase-order__logo-img {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .purchase-order__main {
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  /* Side/bottom border redraw on each printed fragment so breaks don’t “open” the box */
+  .purchase-order__items-wrap {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* When remarks split across pages, keep cell borders on each fragment (fixes missing line after break) */
+  .purchase-order__remarks-cell {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    border-bottom: 1px solid var(--po-border);
+  }
+
+  /*
+   * Pin sign-off to the physical bottom of the sheet: vh is the preview viewport, not A4.
+   * Fill the printable band below the repeated doc header (same math as @page margins).
+   */
+  .purchase-order__remarks-print-stack {
+    min-height: calc(
+      210mm - 22mm - var(--po-print-doc-header-mm) - var(--po-print-remarks-top-slice-mm)
+    );
+  }
+
+  .purchase-order__remarks-print-spacer {
+    flex: 1 1 auto;
+    min-height: 1mm;
+  }
+
+  .purchase-order__footer-in-remarks {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .purchase-order__footer-in-remarks .purchase-order__footer {
+    padding: 10px 12px;
+  }
+
+  .purchase-order__parties,
+  .purchase-order__remarks-cell {
+    overflow: visible !important;
+  }
+
+  .purchase-order__parties,
+  .purchase-order__items-wrap {
+    border-color: #000;
+  }
+
+  .purchase-order__parties {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .purchase-order__remarks-cell {
+    min-height: 0;
+    padding: 8px 10px 10px;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .purchase-order__table thead {
+    display: table-row-group;
+  }
+
+  .purchase-order__table tbody {
+    display: table-row-group;
+  }
+
+  .purchase-order__tbody-items tr {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .purchase-order__tbody-after-items tr.purchase-order__summary-row,
+  .purchase-order__tbody-after-items tr.purchase-order__amount-words {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .purchase-order__remarks-row,
+  .purchase-order__remarks-row td {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .purchase-order__parties-table thead {
+    display: table-header-group;
+  }
+}

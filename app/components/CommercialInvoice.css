@@ -1,0 +1,341 @@
+/* Commercial Invoice — portrait A4, grid borders (scoped under .commercial-invoice) */
+
+.commercial-invoice {
+  --ci-border: #000;
+  --ci-sheet-max: 21cm;
+  --ci-label-size: 9.5px;
+  --ci-value-size: 11.5px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--ci-value-size);
+  line-height: 1.35;
+  color: #000;
+  max-width: min(100%, var(--ci-sheet-max));
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.commercial-invoice *,
+.commercial-invoice *::before,
+.commercial-invoice *::after {
+  box-sizing: border-box;
+}
+
+.commercial-invoice__doc-print-wrap {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: none;
+  margin: 0;
+}
+
+.commercial-invoice__doc-print-thead-cell,
+.commercial-invoice__doc-print-tbody-cell {
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+  border: none;
+  width: 100%;
+}
+
+.commercial-invoice__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: 1px solid var(--ci-border);
+}
+
+.commercial-invoice__table--flush-top {
+  border-top: none;
+}
+
+.commercial-invoice__table td,
+.commercial-invoice__table th {
+  border: 1px solid var(--ci-border);
+  padding: 5px 7px;
+  vertical-align: top;
+}
+
+.commercial-invoice__label {
+  display: block;
+  font-size: var(--ci-label-size);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.commercial-invoice__label--corner {
+  display: inline;
+  margin-bottom: 0;
+}
+
+.commercial-invoice__value-text {
+  font-size: var(--ci-value-size);
+  font-weight: 400;
+}
+
+.commercial-invoice__title {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.06em;
+  padding: 10px 8px;
+}
+
+.commercial-invoice__header-logo {
+  width: 18%;
+  padding: 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.commercial-invoice__logo {
+  position: relative;
+  width: 72px;
+  height: 56px;
+  margin: 0 auto;
+}
+
+.commercial-invoice__logo-img {
+  object-fit: contain;
+}
+
+.commercial-invoice__exporter-block p,
+.commercial-invoice__party-block p {
+  margin: 0 0 2px;
+  font-size: var(--ci-value-size);
+}
+
+.commercial-invoice__exporter-block strong,
+.commercial-invoice__party-block strong {
+  font-weight: 700;
+}
+
+/* Four equal logical columns so colspan-2 rows are exactly 50% / 50% (center vertical rule). */
+.commercial-invoice__meta-table .commercial-invoice__meta-col {
+  width: 25%;
+}
+
+.commercial-invoice__cell-exporter,
+.commercial-invoice__cell-ref-meta,
+.commercial-invoice__party-cell {
+  vertical-align: top;
+}
+
+.commercial-invoice__ref-grid {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.commercial-invoice__ref-grid td {
+  border: 1px solid var(--ci-border);
+  padding: 5px 7px;
+  vertical-align: top;
+}
+
+.commercial-invoice__ref-row {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.commercial-invoice__ref-invoice-block {
+  width: 100%;
+}
+
+.commercial-invoice__ref-invoice-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.commercial-invoice__ref-invoice-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.commercial-invoice__ref-date-value {
+  text-align: right;
+  margin-left: auto;
+}
+
+/* Shipping rows use same borders as rest of .commercial-invoice__meta-table (no nested table). */
+.commercial-invoice__terms-cell {
+  vertical-align: top;
+}
+
+.commercial-invoice__terms-values {
+  margin-top: 2px;
+}
+
+.commercial-invoice__terms-line {
+  margin: 0 0 4px;
+  font-size: var(--ci-value-size);
+  line-height: 1.35;
+}
+
+.commercial-invoice__terms-line--primary {
+  font-weight: 700;
+}
+
+.commercial-invoice__terms-line--secondary {
+  font-weight: 400;
+}
+
+.commercial-invoice__terms-line:last-child {
+  margin-bottom: 0;
+}
+
+.commercial-invoice__items-head th {
+  font-size: var(--ci-label-size);
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 6px 5px;
+}
+
+.commercial-invoice__col-desc {
+  width: 52%;
+}
+
+.commercial-invoice__col-qty {
+  width: 16%;
+  text-align: right;
+}
+
+.commercial-invoice__col-rate {
+  width: 16%;
+  text-align: right;
+}
+
+.commercial-invoice__col-amt {
+  width: 16%;
+  text-align: right;
+}
+
+.commercial-invoice__items-head .commercial-invoice__col-desc {
+  text-align: center;
+}
+
+.commercial-invoice__spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  table-layout: fixed;
+}
+
+.commercial-invoice__spec-table th,
+.commercial-invoice__spec-table td {
+  border: 1px solid var(--ci-border);
+  padding: 4px 6px;
+  font-size: 8.5px;
+  text-align: center;
+}
+
+.commercial-invoice__spec-table th {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.commercial-invoice__num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.commercial-invoice__summary-block {
+  margin-top: 10px;
+  padding-top: 6px;
+  font-size: 9px;
+}
+
+.commercial-invoice__summary-block p {
+  margin: 0 0 3px;
+}
+
+.commercial-invoice__total-row td {
+  font-weight: 700;
+  padding: 7px 7px;
+}
+
+.commercial-invoice__total-row .commercial-invoice__num {
+  font-weight: 700;
+}
+
+.commercial-invoice__words-row td {
+  padding: 8px 7px;
+  font-weight: 700;
+  font-size: 9px;
+}
+
+.commercial-invoice__footer-bank p {
+  margin: 0 0 3px;
+  font-size: 9px;
+}
+
+.commercial-invoice__bank-box {
+  border: 1px solid var(--ci-border);
+  padding: 6px 8px;
+  margin-top: 8px;
+}
+
+.commercial-invoice__bank-box-title {
+  font-weight: 700;
+  font-size: 9px;
+  margin-bottom: 6px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.commercial-invoice__declaration {
+  margin-top: 10px;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.commercial-invoice__sign-area {
+  min-height: 120px;
+  padding: 8px;
+  text-align: center;
+}
+
+.commercial-invoice__sign-title {
+  font-weight: 700;
+  margin-bottom: 48px;
+  text-align: right;
+}
+
+.commercial-invoice__sign-label {
+  margin-top: auto;
+  font-weight: 700;
+  font-size: 9px;
+  text-align: center;
+  padding-top: 8px;
+}
+
+.commercial-invoice__sk-placeholder {
+  display: inline-block;
+  min-height: 1em;
+}
+
+@media print {
+  .commercial-invoice-print-root {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .commercial-invoice {
+    max-width: none;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+}
