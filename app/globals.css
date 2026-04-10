@@ -13,6 +13,46 @@ body {
   background: #fff;
 }
 
+.sales-order-print-actions {
+  margin-bottom: 16px;
+}
+
+.sales-order-print-actions__row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sales-order-print-hint {
+  margin: 10px 0 0;
+  max-width: 42rem;
+  margin-left: auto;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #444;
+}
+
+.sales-order-print-btn {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: 1px solid #1a1a1a;
+  background: #fff;
+  color: #111;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sales-order-print-btn:hover {
+  background: #f5f5f5;
+}
+
+.sales-order-print-btn:focus-visible {
+  outline: 2px solid #166534;
+  outline-offset: 2px;
+}
+
 .purchase-order-print-actions {
   margin-bottom: 16px;
 }
@@ -59,13 +99,15 @@ body {
   }
 
   .purchase-order-print-root,
-  .commercial-invoice-print-root {
+  .commercial-invoice-print-root,
+  .sales-order-print-root {
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  .purchase-order-print-actions {
+  .purchase-order-print-actions,
+  .sales-order-print-actions {
     display: none !important;
   }
 }
