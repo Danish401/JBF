@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { amountToWordsIntegerOnly, usdAmountToCommercialInvoiceWords } from '@/lib/amount-words'
 import {
   DEFAULT_COMMERCIAL_INVOICE_VIEW,
+  type CommercialInvoiceProductSpec,
   type CommercialInvoiceViewModel,
 } from '@/lib/commercial-invoice-view-model'
 import './CommercialInvoice.css'
@@ -22,6 +23,14 @@ function BlankOr({ children }: { children: ReactNode }) {
     return <span className="commercial-invoice__sk-placeholder">{'\u00a0'}</span>
   }
   return <>{children}</>
+}
+
+function lineSpecTypeThicknessWidth(specs: CommercialInvoiceProductSpec[]): [string, string, string] {
+  return [
+    specs.find((s) => s.label === 'TYPE')?.value ?? '',
+    specs.find((s) => s.label === 'THICKNESS (GAUGE)')?.value ?? '',
+    specs.find((s) => s.label === 'WIDTH (INCH)')?.value ?? '',
+  ]
 }
 
 export default function CommercialInvoice({
@@ -265,24 +274,43 @@ export default function CommercialInvoice({
                             {line}
                           </p>
                         ))}
-                        {item.specs.length > 0 ? (
-                          <table className="commercial-invoice__spec-table" role="presentation">
-                            <thead>
-                              <tr>
-                                {item.specs.map((s) => (
-                                  <th key={s.label}>{s.label}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                {item.specs.map((s) => (
-                                  <td key={s.label}>{s.value}</td>
-                                ))}
-                              </tr>
-                            </tbody>
-                          </table>
-                        ) : null}
+                        {(() => {
+                          const [vType, vThick, vWidth] = lineSpecTypeThicknessWidth(item.specs)
+                          return (
+                            <table className="commercial-invoice__line-specs" role="presentation">
+                              <thead>
+                                <tr>
+                                  <th className="commercial-invoice__line-specs-th" scope="col">
+                                    <span className="commercial-invoice__line-specs-th-line">TYPE</span>
+                                  </th>
+                                  <th className="commercial-invoice__line-specs-th" scope="col">
+                                    <span className="commercial-invoice__line-specs-th-line">THICKNESS</span>
+                                    <br />
+                                    <span className="commercial-invoice__line-specs-th-sub">(GAUGE)</span>
+                                  </th>
+                                  <th className="commercial-invoice__line-specs-th" scope="col">
+                                    <span className="commercial-invoice__line-specs-th-line">WIDTH</span>
+                                    <br />
+                                    <span className="commercial-invoice__line-specs-th-sub">(INCH)</span>
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td className="commercial-invoice__line-specs-td">
+                                    <BlankOr>{vType}</BlankOr>
+                                  </td>
+                                  <td className="commercial-invoice__line-specs-td">
+                                    <BlankOr>{vThick}</BlankOr>
+                                  </td>
+                                  <td className="commercial-invoice__line-specs-td">
+                                    <BlankOr>{vWidth}</BlankOr>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          )
+                        })()}
                       </td>
                       <td className="commercial-invoice__num">{item.quantityLbs}</td>
                       <td className="commercial-invoice__num">{item.unitRateUsd}</td>
@@ -302,11 +330,16 @@ export default function CommercialInvoice({
                         <p>Total Pallets: {data.summaryBlock.totalPallets}</p>
                         <p>Total Rolls: {data.summaryBlock.totalRolls}</p>
                         <p>
-                          Total Net Weight: {data.summaryBlock.totalNetLbs} / {data.summaryBlock.totalNetKgs}
+                          Total Net Weight:{' '}
+                          {[data.summaryBlock.totalNetLbs, data.summaryBlock.totalNetKgs]
+                            .filter((s) => s && String(s).trim())
+                            .join(' / ')}
                         </p>
                         <p>
-                          Total Gross Weight: {data.summaryBlock.totalGrossLbs} /{' '}
-                          {data.summaryBlock.totalGrossKgs}
+                          Total Gross Weight:{' '}
+                          {[data.summaryBlock.totalGrossLbs, data.summaryBlock.totalGrossKgs]
+                            .filter((s) => s && String(s).trim())
+                            .join(' / ')}
                         </p>
                         <p>
                           SHIPPING MARKS: <BlankOr>{data.summaryBlock.shippingMarks}</BlankOr>
