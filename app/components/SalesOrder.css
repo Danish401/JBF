@@ -1,0 +1,826 @@
+/* Sales Order document — scoped under .sales-order */
+
+.sales-order {
+  --so-border: #000;
+  --so-header-bg: #808080;
+  --so-header-text: #fff;
+  --so-watermark: rgba(190, 190, 190, 0.42);
+  /* Match A4 landscape sheet width (29.7 cm) — same proportions as PDF template */
+  --so-sheet-max: 29.7cm;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #000;
+  max-width: min(100%, var(--so-sheet-max));
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.sales-order *,
+.sales-order *::before,
+.sales-order *::after {
+  box-sizing: border-box;
+}
+
+/* Single-column wrapper so document <thead> repeats on every printed page (browser print/PDF) */
+.sales-order__doc-print-wrap {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: none;
+  margin: 0;
+}
+
+.sales-order__doc-print-thead-cell,
+.sales-order__doc-print-tbody-cell {
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+  border: none;
+  width: 100%;
+}
+
+/* ----- Top header: logo | SALES ORDER + Seller/Exporter + company | SO meta ----- */
+.sales-order__header {
+  display: grid;
+  grid-template-columns: minmax(96px, 18%) minmax(0, 1fr) minmax(152px, 22%);
+  border: 1px solid var(--so-border);
+  align-items: stretch;
+}
+
+.sales-order__header-logo-cell {
+  border-right: 1px solid var(--so-border);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.sales-order__header-center-cell {
+  border-right: 1px solid var(--so-border);
+  padding: 10px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  min-width: 0;
+}
+
+.sales-order__header-company-block {
+  width: 100%;
+  text-align: left;
+}
+
+.sales-order__header-po-cell {
+  padding: 10px 12px 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: #fff;
+}
+
+.sales-order__header-seller-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.sales-order__logo {
+  position: relative;
+  width: 100%;
+  max-width: 140px;
+  height: 88px;
+  min-height: 72px;
+  min-width: 0;
+}
+
+.sales-order__seller-role {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sales-order__seller-company {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.sales-order__seller-details {
+  width: 100%;
+  font-size: 9.5px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.sales-order__seller-line {
+  margin: 0 0 2px;
+  font-weight: 400;
+}
+
+.sales-order__seller-line--meta {
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+.sales-order__logo-img {
+  object-fit: contain;
+  object-position: center;
+}
+
+.sales-order__doc-title {
+  align-self: center;
+  width: 100%;
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sales-order__company-name {
+  margin: 0 0 5px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.sales-order__company-address {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+  max-width: 100%;
+  text-transform: none;
+}
+
+.sales-order__po-rows {
+  width: 100%;
+  text-align: left;
+}
+
+.sales-order__po-line {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-order__po-line:last-child {
+  margin-bottom: 0;
+}
+
+.sales-order__po-label {
+  font-weight: 700;
+}
+
+.sales-order__po-sep {
+  font-weight: 400;
+}
+
+.sales-order__po-val {
+  font-weight: 400;
+}
+
+/* ----- Supplier / Bill / Ship (synchronized table rows) ----- */
+.sales-order__parties {
+  margin-top: 0;
+  border: 1px solid var(--so-border);
+  border-top: none;
+  /* Left edge drawn on first table column — avoids missing line when inner table paints flush */
+  border-left: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.sales-order__parties-table {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: none;
+  background: #fff;
+}
+
+.sales-order__parties-th {
+  background: var(--so-header-bg);
+  color: var(--so-header-text);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: none;
+  padding: 4px 8px 5px;
+  text-align: left;
+  border-bottom: none;
+  border-left: 1px solid var(--so-border);
+  border-right: 1px solid var(--so-border);
+  vertical-align: middle;
+  width: 33.33%;
+  line-height: 1.2;
+}
+
+.sales-order__parties-th:last-child {
+  border-right: none;
+}
+
+.sales-order__parties-th:not(:first-child) {
+  border-left: none;
+}
+
+.sales-order__parties-td {
+  border-left: 1px solid var(--so-border);
+  border-right: 1px solid var(--so-border);
+  border-bottom: none;
+  vertical-align: top;
+  padding: 3px 8px 3px;
+  background: #fff;
+  text-align: left;
+}
+
+.sales-order__parties-td:not(:first-child) {
+  border-left: none;
+}
+
+.sales-order__parties-td:last-child {
+  border-right: none;
+}
+
+.sales-order__parties-tr--bottom .sales-order__parties-td {
+  padding-top: 5px;
+}
+
+.sales-order__parties-td--spacer {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.sales-order__parties-cell-spacer {
+  display: block;
+  min-height: calc(1.2em + 2px);
+}
+
+.sales-order__watermark {
+  pointer-events: none;
+  position: absolute;
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--so-watermark);
+  letter-spacing: 0.18em;
+  z-index: 0;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sales-order__watermark--parties {
+  left: 58%;
+  top: 52%;
+  transform: translate(-50%, -50%) rotate(-32deg);
+}
+
+/* Label / colon / value — same grid in every party cell */
+.sales-order__supplier-kv {
+  display: grid;
+  grid-template-columns: 9.25rem 0.45rem minmax(0, 1fr);
+  column-gap: 2px;
+  font-size: 10px;
+  line-height: 1.2;
+  align-items: start;
+  margin-bottom: 0;
+  min-height: calc(1.2em + 1px);
+}
+
+.sales-order__supplier-kv--multiline {
+  min-height: 0;
+}
+
+/* Bill / Ship: values flush left in the cell (no reserved label column) */
+.sales-order__supplier-kv--hide-label {
+  display: block;
+}
+
+.sales-order__supplier-kv--hide-label .sales-order__sk-label,
+.sales-order__supplier-kv--hide-label .sales-order__sk-colon {
+  display: none;
+}
+
+.sales-order__supplier-kv--hide-label .sales-order__sk-value {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.sales-order__supplier-kv--bold .sales-order__sk-label,
+.sales-order__supplier-kv--bold .sales-order__sk-value {
+  font-weight: 700;
+}
+
+.sales-order__sk-label {
+  text-align: left;
+  font-weight: 400;
+}
+
+.sales-order__sk-colon {
+  text-align: center;
+  font-weight: 400;
+}
+
+.sales-order__sk-value {
+  font-weight: 400;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.sales-order__sk-value--party-strong {
+  font-weight: 700;
+}
+
+.sales-order__sk-placeholder {
+  display: inline-block;
+  min-height: 1.2em;
+  min-width: 0.35em;
+  vertical-align: top;
+}
+
+.sales-order__sk-address-line {
+  display: block;
+}
+
+.sales-order__sk-address-line + .sales-order__sk-address-line {
+  margin-top: 1px;
+}
+
+/* ----- Items table ----- */
+.sales-order__items-wrap {
+  margin-top: 0;
+  border: 1px solid var(--so-border);
+  border-top: none;
+}
+
+.sales-order__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 9px;
+}
+
+/* table-row-group: header prints once; table-header-group repeats on every printed page */
+.sales-order__table thead {
+  display: table-row-group;
+}
+
+.sales-order__table tbody {
+  display: table-row-group;
+}
+
+.sales-order__table th,
+.sales-order__table td {
+  border: 1px solid var(--so-border);
+  padding: 6px 7px;
+  vertical-align: middle;
+}
+
+.sales-order__table thead th {
+  background: var(--so-header-bg);
+  color: var(--so-header-text);
+  font-weight: 700;
+  text-align: center;
+  text-transform: none;
+  font-size: 8px;
+  line-height: 1.15;
+  padding: 4px 3px;
+  hyphens: auto;
+}
+
+.sales-order__col-sr {
+  width: 3%;
+  text-align: center;
+}
+
+.sales-order__col-custref {
+  width: 7%;
+}
+
+.sales-order__col-type {
+  width: 4%;
+}
+
+.sales-order__col-thick {
+  width: 5%;
+}
+
+.sales-order__col-core {
+  width: 3.5%;
+}
+
+.sales-order__col-width {
+  width: 4%;
+}
+
+.sales-order__col-length {
+  width: 4%;
+}
+
+.sales-order__col-tin,
+.sales-order__col-tout {
+  width: 5%;
+}
+
+.sales-order__col-od {
+  width: 5%;
+}
+
+.sales-order__col-qty {
+  width: 5%;
+  text-align: right;
+}
+
+.sales-order__col-baserate,
+.sales-order__col-baseval,
+.sales-order__col-tax,
+.sales-order__col-total {
+  text-align: right;
+}
+
+.sales-order__col-baserate {
+  width: 7%;
+}
+
+.sales-order__col-baseval {
+  width: 7%;
+}
+
+.sales-order__col-tax {
+  width: 6%;
+}
+
+.sales-order__col-total {
+  width: 8%;
+}
+
+.sales-order__table tbody td.sales-order__col-sr {
+  text-align: center;
+}
+
+.sales-order__table tbody td.sales-order__text-left {
+  text-align: left;
+}
+
+.sales-order__table tbody td.sales-order__text-right {
+  text-align: right;
+}
+
+.sales-order__summary-label {
+  font-weight: 700;
+  text-align: right;
+}
+
+.sales-order__summary-value {
+  text-align: right;
+}
+
+.sales-order__summary-row--total .sales-order__summary-label,
+.sales-order__summary-row--total .sales-order__summary-value {
+  font-weight: 700;
+}
+
+.sales-order__amount-words td {
+  text-align: left;
+  font-size: 10.5px;
+  padding: 8px 10px;
+}
+
+.sales-order__notifying-cell {
+  padding: 6px 10px 8px;
+  font-size: 10.5px;
+  vertical-align: top;
+}
+
+.sales-order__notifying-label {
+  font-weight: 700;
+}
+
+.sales-order__additional-remarks {
+  margin: 12px 0 0;
+  font-size: 10px;
+  line-height: 1.45;
+  font-style: italic;
+}
+
+.sales-order__shipment-line {
+  margin: 10px 0 0;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.sales-order__footer--signatures {
+  align-items: flex-end;
+}
+
+.sales-order__signatory-space {
+  margin-top: 36px;
+  min-height: 28px;
+  border-bottom: 1px solid var(--so-border);
+  max-width: 220px;
+}
+
+.sales-order__footer-right .sales-order__signatory-space {
+  margin-left: auto;
+}
+
+.sales-order__page-number {
+  margin: 0;
+  padding: 8px 12px 10px;
+  text-align: right;
+  font-size: 10px;
+}
+
+.sales-order__tbody-after-items tr:first-child td {
+  break-before: avoid;
+  page-break-before: avoid;
+}
+
+/* ----- Remarks (inside line-items table; matches PDF flow) ----- */
+.sales-order__remarks-cell {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 12px 12px;
+  vertical-align: top;
+  min-height: 180px;
+}
+
+.sales-order__remarks-print-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.sales-order__remarks-print-spacer {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.sales-order__remarks-cell .sales-order__watermark:not(.sales-order__watermark--parties) {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-35deg);
+  z-index: 0;
+}
+
+.sales-order__remarks-inner {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+
+.sales-order__remarks-title {
+  margin: 0 0 10px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+/* Plain list — no <ol>, so only one number (01, 02, …) not 1. + 01 */
+.sales-order__remarks-list {
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.sales-order__remarks-line {
+  margin: 0 0 6px;
+  padding: 0;
+  line-height: 1.45;
+}
+
+.sales-order__remarks-line:last-child {
+  margin-bottom: 0;
+}
+
+.sales-order__remarks-line-num {
+  font-weight: 700;
+}
+
+/* Footer inside remarks cell: one bordered block with the table grid (print-friendly page breaks) */
+.sales-order__footer-in-remarks {
+  flex: 0 0 auto;
+  margin-top: auto;
+  border-top: 2px solid var(--so-border);
+  background: #fff;
+}
+
+.sales-order__footer {
+  margin: 0;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 14px;
+  gap: 16px;
+}
+
+.sales-order__footer-left {
+  text-align: left;
+}
+
+.sales-order__footer-right {
+  text-align: right;
+}
+
+.sales-order__footer-label {
+  font-weight: 700;
+  font-size: 11px;
+  margin: 0 0 6px;
+}
+
+.sales-order__footer-value {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.sales-order__footer-closing {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.sales-order__footer-company {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ----- Print / PDF: landscape; doc header via outer table <thead> (repeats per page) ----- */
+
+@page {
+  /* Explicit landscape: width × height (mm) */
+  size: 297mm 210mm;
+  margin: 11mm 12mm;
+}
+
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sales-order {
+    /*
+     * Match @page size: 297mm × 210mm, margin 11mm top/bottom → 188mm tall content box.
+     * Tune --so-print-doc-header-mm if the repeated header prints taller/shorter than this.
+     * --so-print-remarks-top-slice-mm: extra rows (e.g. amount line) left above remarks on a continuation page.
+     */
+    --so-print-doc-header-mm: 38mm;
+    --so-print-remarks-top-slice-mm: 0mm;
+    max-width: none;
+    width: 100%;
+    font-size: 10pt;
+    color: #000;
+    background: #fff;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sales-order__watermark {
+    display: none !important;
+  }
+
+  .sales-order__doc-print-wrap thead,
+  .sales-order__doc-print-thead {
+    display: table-header-group;
+  }
+
+  .sales-order__doc-print-wrap tbody,
+  .sales-order__doc-print-tbody {
+    display: table-row-group;
+  }
+
+  .sales-order__header {
+    width: 100% !important;
+    margin: 0;
+    background: #fff;
+    border: 1px solid var(--so-border);
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sales-order__header-logo-cell,
+  .sales-order__logo-img {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sales-order__main {
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  /* Side/bottom border redraw on each printed fragment so breaks don’t “open” the box */
+  .sales-order__items-wrap {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* When remarks split across pages, keep cell borders on each fragment (fixes missing line after break) */
+  .sales-order__remarks-cell {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    border-bottom: 1px solid var(--so-border);
+  }
+
+  /*
+   * Pin sign-off to the physical bottom of the sheet: vh is the preview viewport, not A4.
+   * Fill the printable band below the repeated doc header (same math as @page margins).
+   */
+  .sales-order__remarks-print-stack {
+    min-height: calc(
+      210mm - 22mm - var(--so-print-doc-header-mm) - var(--so-print-remarks-top-slice-mm)
+    );
+  }
+
+  .sales-order__remarks-print-spacer {
+    flex: 1 1 auto;
+    min-height: 1mm;
+  }
+
+  .sales-order__footer-in-remarks {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .sales-order__footer-in-remarks .sales-order__footer {
+    padding: 10px 12px;
+  }
+
+  .sales-order__parties,
+  .sales-order__remarks-cell {
+    overflow: visible !important;
+  }
+
+  .sales-order__parties,
+  .sales-order__items-wrap {
+    border-color: #000;
+  }
+
+  .sales-order__parties {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .sales-order__remarks-cell {
+    min-height: 0;
+    padding: 8px 10px 10px;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .sales-order__table thead {
+    display: table-row-group;
+  }
+
+  .sales-order__table tbody {
+    display: table-row-group;
+  }
+
+  .sales-order__tbody-items tr {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .sales-order__tbody-after-items tr.sales-order__summary-row,
+  .sales-order__tbody-after-items tr.sales-order__amount-words {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .sales-order__remarks-row,
+  .sales-order__remarks-row td {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .sales-order__parties-table thead {
+    display: table-header-group;
+  }
+}
