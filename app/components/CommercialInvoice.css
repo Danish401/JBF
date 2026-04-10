@@ -223,24 +223,47 @@
   text-align: center;
 }
 
-.commercial-invoice__spec-table {
+/* TYPE / THICKNESS / WIDTH grid — no table borders; headers use text underline only.
+   Must override .commercial-invoice__table td/th which applies to nested cells too. */
+.commercial-invoice__table .commercial-invoice__line-specs {
   width: 100%;
   border-collapse: collapse;
   margin-top: 8px;
   table-layout: fixed;
+  border: none;
 }
 
-.commercial-invoice__spec-table th,
-.commercial-invoice__spec-table td {
-  border: 1px solid var(--ci-border);
-  padding: 4px 6px;
+.commercial-invoice__table .commercial-invoice__line-specs .commercial-invoice__line-specs-th,
+.commercial-invoice__table .commercial-invoice__line-specs .commercial-invoice__line-specs-td {
+  width: 33.33%;
+  border: none;
+  padding: 5px 6px 6px;
   font-size: 8.5px;
   text-align: center;
+  vertical-align: middle;
 }
 
-.commercial-invoice__spec-table th {
+.commercial-invoice__line-specs-th {
   font-weight: 700;
   text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.commercial-invoice__line-specs-th-line {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.commercial-invoice__line-specs-th-sub {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-size: 8px;
+}
+
+.commercial-invoice__line-specs-td {
+  font-size: 9px;
+  font-weight: 400;
 }
 
 .commercial-invoice__num {

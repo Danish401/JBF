@@ -129,6 +129,15 @@ function formatBooksDateOrPassthrough(raw: string | undefined, fallback: string)
   return t
 }
 
+/** Split one Zoho field like "40,209.93 LBS / 18,238.90 KGS" into left/right of the slash. */
+function splitSlashPair(raw: string | undefined): { left: string; right: string } | null {
+  if (!raw?.trim()) return null
+  const t = raw.trim()
+  const idx = t.indexOf('/')
+  if (idx === -1) return { left: t, right: '' }
+  return { left: t.slice(0, idx).trim(), right: t.slice(idx + 1).trim() }
+}
+
 function formatMoney(n: number | undefined, precision: number): string {
   if (n === undefined || Number.isNaN(n)) return '0.' + '0'.repeat(precision)
   return n.toLocaleString('en-US', {
@@ -178,25 +187,24 @@ function lineCustomFieldString(row: ZohoInvoiceLineItem, apiName: string): strin
   return String(raw)
 }
 
-function lineItemSpecs(row: ZohoInvoiceLineItem): CommercialInvoiceProductSpec[] {
-  const pairs: { api: string; label: string }[] = [
-    { api: 'cf_type', label: 'TYPE' },
-    { api: 'cf_thickness_gauge', label: 'THICKNESS (GAUGE)' },
-    { api: 'cf_width_inch', label: 'WIDTH (INCH)' },
-    { api: 'cf_item_type', label: 'TYPE' },
-    { api: 'cf_gauge', label: 'THICKNESS (GAUGE)' },
-    { api: 'cf_width', label: 'WIDTH (INCH)' },
+/** Always TYPE → THICKNESS (GAUGE) → WIDTH (INCH) — reads line-item custom fields from Zoho Books. */
+function canonicalLineSpecs(row: ZohoInvoiceLineItem): CommercialInvoiceProductSpec[] {
+  const type =
+    lineCustomFieldString(row, 'cf_type') || lineCustomFieldString(row, 'cf_item_type') || ''
+  const thick =
+    lineCustomFieldString(row, 'cf_thickness') ||
+    lineCustomFieldString(row, 'cf_thickness_gauge') ||
+    lineCustomFieldString(row, 'cf_gauge') ||
+    ''
+  const width =
+    lineCustomFieldString(row, 'cf_width') ||
+    lineCustomFieldString(row, 'cf_width_inch') ||
+    ''
+  return [
+    { label: 'TYPE', value: type },
+    { label: 'THICKNESS (GAUGE)', value: thick },
+    { label: 'WIDTH (INCH)', value: width },
   ]
-  const specs: CommercialInvoiceProductSpec[] = []
-  const seen = new Set<string>()
-  for (const { api, label } of pairs) {
-    const v = lineCustomFieldString(row, api)
-    if (v && !seen.has(label)) {
-      specs.push({ label, value: v })
-      seen.add(label)
-    }
-  }
-  return specs
 }
 
 function contactLinesFromAddress(addr: ZohoAddr | undefined): string[] {
@@ -290,7 +298,7 @@ function mapLineItems(
     const qty = row.quantity ?? 0
     const rate = row.rate ?? 0
     const total = row.item_total ?? rate * qty
-    const specs = lineItemSpecs(row)
+    const specs = canonicalLineSpecs(row)
     out.push({
       descriptionTitle: title,
       descriptionBodyLines: descLines,
@@ -333,10 +341,26 @@ function mapTariffLines(inv: ZohoInvoicePayload, precision: number): CommercialI
   return lines
 }
 
+/** Zoho default payment label; omit from “Terms of Delivery and Payment” when using invoice Terms / fallback. */
+function isDueOnReceiptPaymentLabel(label: string | undefined): boolean {
+  if (!label?.trim()) return false
+  return /^due\s+on\s+receipt\.?$/i.test(label.trim())
+}
+
 function termsLines(inv: ZohoInvoicePayload): string[] {
+  const cf = customFieldString(inv, 'cf_terms_of_delivery_and_payment')?.trim()
+  if (cf) {
+    return cf
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+
   const lines: string[] = []
   const label = inv.payment_terms_label?.trim()
-  if (label) lines.push(label)
+  if (label && !isDueOnReceiptPaymentLabel(label)) {
+    lines.push(label)
+  }
   if (inv.terms?.trim()) {
     lines.push(
       ...inv.terms
@@ -409,9 +433,16 @@ export function mapZohoInvoicePayload(inv: ZohoInvoicePayload): CommercialInvoic
     '',
   )
 
-  vm.shipping.preCarriedByLeft = customFieldString(inv, 'cf_pre_carried_by_left') || ''
-  vm.shipping.preCarriedByRight = customFieldString(inv, 'cf_pre_carried_by_right') || ''
-  vm.shipping.vesselNameVoyage = customFieldString(inv, 'cf_vessel_voyage') || ''
+  vm.shipping.preCarriedByLeft =
+    customFieldString(inv, 'cf_pre_carried_by_left') ||
+    customFieldString(inv, 'cf_pre_carried_by') ||
+    ''
+  vm.shipping.preCarriedByRight =
+    customFieldString(inv, 'cf_pre_carried_by_right') ||
+    customFieldString(inv, 'cf_pre_carried_by1') ||
+    ''
+  vm.shipping.vesselNameVoyage =
+    customFieldString(inv, 'cf_vessel_name_voyage_no') || customFieldString(inv, 'cf_vessel_voyage') || ''
   vm.shipping.portOfDischarge = customFieldString(inv, 'cf_port_of_discharge') || ''
   vm.shipping.portOfLoading = customFieldString(inv, 'cf_port_of_loading') || ''
   vm.shipping.finalDestination = customFieldString(inv, 'cf_final_destination') || ''
@@ -432,7 +463,11 @@ export function mapZohoInvoicePayload(inv: ZohoInvoicePayload): CommercialInvoic
           {
             descriptionTitle: '—',
             descriptionBodyLines: [],
-            specs: [],
+            specs: [
+              { label: 'TYPE', value: '' },
+              { label: 'THICKNESS (GAUGE)', value: '' },
+              { label: 'WIDTH (INCH)', value: '' },
+            ],
             quantityLbs: '—',
             unitRateUsd: '—',
             amountUsd: '—',
@@ -442,20 +477,37 @@ export function mapZohoInvoicePayload(inv: ZohoInvoicePayload): CommercialInvoic
 
   const pallets = customFieldString(inv, 'cf_total_pallets')
   const rolls = customFieldString(inv, 'cf_total_rolls')
-  const netLbs = customFieldString(inv, 'cf_total_net_weight_lbs')
-  const netKgs = customFieldString(inv, 'cf_total_net_weight_kgs')
-  const grossLbs = customFieldString(inv, 'cf_total_gross_weight_lbs')
-  const grossKgs = customFieldString(inv, 'cf_total_gross_weight_kgs')
+  const netCombined = customFieldString(inv, 'cf_total_net_weight')
+  const grossCombined = customFieldString(inv, 'cf_total_gross_weight')
   const marks = customFieldString(inv, 'cf_shipping_marks')
   const originNote = customFieldString(inv, 'cf_origin_note')
 
   if (pallets) vm.summaryBlock.totalPallets = pallets
   if (rolls) vm.summaryBlock.totalRolls = rolls
-  if (netLbs) vm.summaryBlock.totalNetLbs = netLbs.includes('LBS') ? netLbs : `${netLbs} LBS`
-  if (netKgs) vm.summaryBlock.totalNetKgs = netKgs.includes('KGS') ? netKgs : `${netKgs} KGS`
-  if (grossLbs) vm.summaryBlock.totalGrossLbs = grossLbs.includes('LBS') ? grossLbs : `${grossLbs} LBS`
-  if (grossKgs) vm.summaryBlock.totalGrossKgs = grossKgs.includes('KGS') ? grossKgs : `${grossKgs} KGS`
-  if (marks !== undefined) vm.summaryBlock.shippingMarks = marks
+
+  const netPair = netCombined ? splitSlashPair(netCombined) : null
+  if (netPair && (netPair.left || netPair.right)) {
+    vm.summaryBlock.totalNetLbs = netPair.left
+    vm.summaryBlock.totalNetKgs = netPair.right
+  } else {
+    const netLbs = customFieldString(inv, 'cf_total_net_weight_lbs')
+    const netKgs = customFieldString(inv, 'cf_total_net_weight_kgs')
+    if (netLbs) vm.summaryBlock.totalNetLbs = netLbs.includes('LBS') ? netLbs : `${netLbs} LBS`
+    if (netKgs) vm.summaryBlock.totalNetKgs = netKgs.includes('KGS') ? netKgs : `${netKgs} KGS`
+  }
+
+  const grossPair = grossCombined ? splitSlashPair(grossCombined) : null
+  if (grossPair && (grossPair.left || grossPair.right)) {
+    vm.summaryBlock.totalGrossLbs = grossPair.left
+    vm.summaryBlock.totalGrossKgs = grossPair.right
+  } else {
+    const grossLbs = customFieldString(inv, 'cf_total_gross_weight_lbs')
+    const grossKgs = customFieldString(inv, 'cf_total_gross_weight_kgs')
+    if (grossLbs) vm.summaryBlock.totalGrossLbs = grossLbs.includes('LBS') ? grossLbs : `${grossLbs} LBS`
+    if (grossKgs) vm.summaryBlock.totalGrossKgs = grossKgs.includes('KGS') ? grossKgs : `${grossKgs} KGS`
+  }
+
+  if (marks) vm.summaryBlock.shippingMarks = marks
   if (originNote) vm.summaryBlock.originNote = originNote
 
   const total = inv.total ?? inv.sub_total ?? 0

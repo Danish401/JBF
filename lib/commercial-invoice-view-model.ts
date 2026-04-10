@@ -13,6 +13,7 @@ export interface CommercialInvoiceLineItem {
   descriptionTitle: string
   descriptionBodyLines: string[]
   hsCodeLine?: string
+  /** Rendered as a fixed 3-column grid: TYPE, THICKNESS (GAUGE), WIDTH (INCH) (values may be blank). */
   specs: CommercialInvoiceProductSpec[]
   quantityLbs: string
   unitRateUsd: string
