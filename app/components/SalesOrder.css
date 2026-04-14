@@ -4,7 +4,6 @@
   --so-border: #000;
   --so-header-bg: #808080;
   --so-header-text: #fff;
-  --so-watermark: rgba(190, 190, 190, 0.42);
   /* Match A4 landscape sheet width (29.7 cm) — same proportions as PDF template */
   --so-sheet-max: 29.7cm;
   font-family: Arial, Helvetica, sans-serif;
@@ -269,24 +268,6 @@
 .sales-order__parties-cell-spacer {
   display: block;
   min-height: calc(1.2em + 2px);
-}
-
-.sales-order__watermark {
-  pointer-events: none;
-  position: absolute;
-  font-size: 52px;
-  font-weight: 700;
-  color: var(--so-watermark);
-  letter-spacing: 0.18em;
-  z-index: 0;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.sales-order__watermark--parties {
-  left: 58%;
-  top: 52%;
-  transform: translate(-50%, -50%) rotate(-32deg);
 }
 
 /* Label / colon / value — same grid in every party cell */
@@ -572,13 +553,6 @@
   min-height: 0;
 }
 
-.sales-order__remarks-cell .sales-order__watermark:not(.sales-order__watermark--parties) {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(-35deg);
-  z-index: 0;
-}
-
 .sales-order__remarks-inner {
   position: relative;
   z-index: 1;
@@ -697,10 +671,6 @@
     overflow: visible !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-  }
-
-  .sales-order__watermark {
-    display: none !important;
   }
 
   .sales-order__doc-print-wrap thead,
