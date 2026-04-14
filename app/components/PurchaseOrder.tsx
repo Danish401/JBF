@@ -124,10 +124,6 @@ export default function PurchaseOrder({ data = DEFAULT_PURCHASE_ORDER_VIEW }: Pu
             <td className="purchase-order__doc-print-tbody-cell">
               <div className="purchase-order__main">
       <section className="purchase-order__parties" aria-label="Parties">
-        <div className="purchase-order__watermark purchase-order__watermark--parties" aria-hidden>
-          DRAFT
-        </div>
-
         <table className="purchase-order__parties-table">
           <thead>
             <tr>
@@ -314,9 +310,6 @@ export default function PurchaseOrder({ data = DEFAULT_PURCHASE_ORDER_VIEW }: Pu
             <tr className="purchase-order__remarks-row" aria-label="Remarks">
               <td colSpan={8} className="purchase-order__remarks-cell">
                 <div className="purchase-order__remarks-print-stack">
-                  <div className="purchase-order__watermark" aria-hidden>
-                    DRAFT
-                  </div>
                   <div className="purchase-order__remarks-inner">
                     <h3 className="purchase-order__remarks-title">Remarks:</h3>
                     <ol className="purchase-order__remarks-list">

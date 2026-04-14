@@ -119,10 +119,6 @@ export default function SalesOrder({ data = DEFAULT_SALES_ORDER_VIEW }: SalesOrd
             <td className="sales-order__doc-print-tbody-cell">
               <div className="sales-order__main">
                 <section className="sales-order__parties" aria-label="Parties">
-                  <div className="sales-order__watermark sales-order__watermark--parties" aria-hidden>
-                    DRAFT
-                  </div>
-
                   <table className="sales-order__parties-table">
                     <thead>
                       <tr>
@@ -372,9 +368,6 @@ export default function SalesOrder({ data = DEFAULT_SALES_ORDER_VIEW }: SalesOrd
                       <tr className="sales-order__remarks-row" aria-label="Remarks">
                         <td colSpan={15} className="sales-order__remarks-cell">
                           <div className="sales-order__remarks-print-stack">
-                            <div className="sales-order__watermark" aria-hidden>
-                              DRAFT
-                            </div>
                             <div className="sales-order__remarks-inner">
                               <h3 className="sales-order__remarks-title">Remarks:</h3>
                               <div className="sales-order__remarks-list">

@@ -6,6 +6,7 @@
 /coverage
 # next.js
 /.next/
+.next.zip
 out
 # env (secrets)
 .env*.local
